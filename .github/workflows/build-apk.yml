@@ -34,9 +34,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Force Gradle Wrapper Update
+        run: |
+          chmod +x ./gradlew
+          ./gradlew wrapper --gradle-version 9.3.1 --distribution-type bin
+
       - name: Prepare Signing Key and Environment
         run: |
-          # Ensure .env exists so secrets plugin does not fail
           if [ ! -f ".env" ]; then
             if [ -f ".env.example" ]; then
               cp .env.example .env
@@ -46,7 +50,6 @@ jobs:
           fi
           cp .env app/.env 2>/dev/null || true
 
-          # Restore or generate debug.keystore for APK signing
           if [ -f "debug.keystore.base64" ]; then
             echo "Decoding debug.keystore from base64..."
             base64 -d debug.keystore.base64 > debug.keystore
@@ -59,18 +62,13 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-          # Ensure keystore is available in both root and app directory
           cp debug.keystore app/debug.keystore 2>/dev/null || true
-          ls -la debug.keystore
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
 
       - name: Build APK
         env:
           GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dorg.gradle.daemon=false"
         run: |
-          ./gradlew assembleDebug --stacktrace --info
+          ./gradlew assembleDebug --console=plain
 
       - name: Verify Generated APK
         id: apk_info
