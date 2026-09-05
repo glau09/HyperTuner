@@ -20,14 +20,12 @@ jobs:
 
     - name: Make gradlew executable
       run: chmod +x gradlew
-      working-directory: ./main
 
     - name: Build Debug APK
       run: ./gradlew assembleDebug
-      working-directory: ./main
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: main/app/build/outputs/apk/debug/app-debug.apk
+        path: "**/build/outputs/apk/debug/*.apk"
