@@ -31,7 +31,11 @@ import {
   Lock,
   ArrowRight,
   ShieldCheck,
-  HardDrive
+  HardDrive,
+  Download,
+  HelpCircle,
+  ExternalLink,
+  X
 } from 'lucide-react';
 import { AdbDevice, LogEntry, QueueProgress, PreCheckResult } from '../electron/types';
 
@@ -73,6 +77,7 @@ export default function App() {
     error: string;
     timestamp: string;
   } | null>(null);
+  const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
 
   // Terminal & Logs State
   const [logs, setLogs] = useState<LogEntry[]>([
@@ -735,6 +740,25 @@ export default function App() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingDevices ? 'animate-spin text-[#00F0FF]' : ''}`} />
             <span>Refresh Device</span>
+          </button>
+
+          <a
+            href="./HyperTuner-Pro.apk"
+            download="HyperTuner-Pro.apk"
+            title="Download Android APK directly to phone or PC"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold text-emerald-300 hover:text-white transition-all shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download APK</span>
+          </a>
+
+          <button
+            onClick={() => setShowDownloadModal(true)}
+            title="Phone Install Guide & GitHub Release Instructions"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00F0FF]/15 hover:bg-[#00F0FF]/25 border border-[#00F0FF]/30 text-xs font-semibold text-[#00F0FF] hover:text-white transition-all"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Install Guide</span>
           </button>
         </div>
       </header>
@@ -1646,6 +1670,112 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {/* ========================================================================= */}
+      {/* MOBILE DIRECT INSTALL & GITHUB RELEASE MODAL                              */}
+      {/* ========================================================================= */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#161920] border border-white/15 rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/30 text-[#00F0FF]">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Direct APK Download & Phone Install Guide</h3>
+                  <p className="text-xs text-slate-400 font-mono">Install directly on Xiaomi / HyperOS without ADB</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Direct Download Card */}
+            <div className="bg-[#0D0F12] border border-emerald-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col gap-1 text-left w-full sm:w-auto">
+                <span className="text-xs font-bold text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> HyperTuner Pro APK (v1.0)
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">
+                  Size: ~22.3 MB • Signed Android APK • HyperOS / Android 7.0–14+
+                </span>
+              </div>
+              <a
+                href="./HyperTuner-Pro.apk"
+                download="HyperTuner-Pro.apk"
+                className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download APK Now</span>
+              </a>
+            </div>
+
+            {/* Root Cause & Fix for Parse Error */}
+            <div className="flex flex-col gap-3">
+              <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                Fix: "Failed to parse the APK on the device"
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-slate-300">
+                <div className="bg-[#0D0F12] p-3 rounded-lg border border-white/5 flex gap-3">
+                  <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white shrink-0">1</span>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-white">Uninstall Previous Incompatible Build</strong>
+                    <p className="text-[11px] text-slate-400">
+                      If an earlier build was already installed on your device, Android prevents overwriting due to signature mismatch and reports "Failed to parse APK". Long-press the existing app icon on your phone and choose <span className="text-red-400 font-semibold">Uninstall</span> first.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[#0D0F12] p-3 rounded-lg border border-white/5 flex gap-3">
+                  <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white shrink-0">2</span>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-white">Verify Complete APK Download Size</strong>
+                    <p className="text-[11px] text-slate-400">
+                      In your phone's File Manager / Downloads, check the downloaded file size. It should be <span className="text-emerald-400 font-semibold">~22 MB</span>. If it is only a few KB or under 15 MB, the download was interrupted.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[#0D0F12] p-3 rounded-lg border border-white/5 flex gap-3">
+                  <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white shrink-0">3</span>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-white">Enable Unknown App Installation</strong>
+                    <p className="text-[11px] text-slate-400">
+                      In phone Settings &gt; Apps &gt; Special app access &gt; Install unknown apps, select your browser or File Manager and enable "Allow from this source".
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[#0D0F12] p-3 rounded-lg border border-white/5 flex gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#00F0FF]/20 text-[#00F0FF] flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-[#00F0FF]">Automated GitHub Actions Release</strong>
+                    <p className="text-[11px] text-slate-400">
+                      A GitHub workflow (<code className="text-purple-300">build-apk.yml</code>) has been added to your repository. Go to your GitHub repo &gt; <strong>Actions</strong> &gt; <strong>Build &amp; Release Android APK</strong> &gt; <strong>Run workflow</strong>. It compiles, signs (v1 + v2), and creates a release on GitHub where you can download it directly from any phone browser.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                Close Guide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

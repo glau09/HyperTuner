@@ -4,9 +4,10 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: process.env.ELECTRON ? './' : '/',
   server: {
-    port: 5173,
-    strictPort: true
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: false
   }
 });

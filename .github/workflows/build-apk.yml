@@ -1,0 +1,117 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Signed APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare Signing Key and Environment
+        run: |
+          # Ensure .env exists so secrets plugin does not fail
+          if [ ! -f ".env" ]; then
+            if [ -f ".env.example" ]; then
+              cp .env.example .env
+            else
+              touch .env
+            fi
+          fi
+          cp .env app/.env 2>/dev/null || true
+
+          # Restore or generate debug.keystore for APK signing
+          if [ -f "debug.keystore.base64" ]; then
+            echo "Decoding debug.keystore from base64..."
+            base64 -d debug.keystore.base64 > debug.keystore
+          fi
+
+          if [ ! -f "debug.keystore" ] || [ ! -s "debug.keystore" ]; then
+            echo "Generating fallback debug.keystore..."
+            keytool -genkeypair -v -keystore debug.keystore -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+          # Also copy keystore into app/
+          cp debug.keystore app/debug.keystore 2>/dev/null || true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build Signed APK
+        run: |
+          ./gradlew assembleRelease --no-daemon --no-configuration-cache --stacktrace || \
+          ./gradlew assembleDebug --no-daemon --no-configuration-cache --stacktrace
+
+      - name: Verify Generated APK
+        id: apk_info
+        run: |
+          echo "Listing all generated APK files:"
+          find app/build/outputs/apk -type f -name "*.apk" || true
+
+          APK_PATH=$(find app/build/outputs/apk -type f -name "*release*.apk" ! -name "*unsigned*" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find app/build/outputs/apk -type f -name "*.apk" ! -name "*unsigned*" | head -n 1)
+          fi
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          fi
+
+          if [ -z "$APK_PATH" ]; then
+            echo "::error::No APK found after build!"
+            exit 1
+          fi
+
+          echo "Found APK: $APK_PATH"
+          mkdir -p build-dist
+          cp "$APK_PATH" build-dist/HyperTuner-Pro.apk
+          echo "apk_path=build-dist/HyperTuner-Pro.apk" >> $GITHUB_OUTPUT
+          ls -lh build-dist/HyperTuner-Pro.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HyperTuner-Pro-APK
+          path: build-dist/HyperTuner-Pro.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create or Update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-dist/HyperTuner-Pro.apk
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.0' }}
+          name: HyperTuner Pro Release
+          body: |
+            ### 🚀 HyperTuner Pro Android APK
+
+            - **Direct Download:** Click `HyperTuner-Pro.apk` below directly from your phone browser to install.
+            - **Signed with:** v1 + v2 scheme.
+            - **HyperOS / MIUI tip:** If you previously had an earlier build installed, uninstall it first to avoid signature conflict errors.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
