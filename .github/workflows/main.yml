@@ -18,14 +18,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # Replace 'YOUR_SUBFOLDER_NAME' with the actual folder name (e.g., HyperTuner)
-    - name: Make gradlew executable
-      run: chmod +x gradlew
-      working-directory: ./YOUR_SUBFOLDER_NAME
+    # Installs Gradle directly so you don't need the gradlew file
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
-      working-directory: ./YOUR_SUBFOLDER_NAME
+      run: gradle assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
