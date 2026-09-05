@@ -32,7 +32,7 @@ android {
                 storePassword = System.getenv("STORE_PASSWORD")
                 keyAlias = "upload"
                 keyPassword = System.getenv("KEY_PASSWORD")
-            } else if (file("${rootDir}/debug.keystore").exists()) {
+            } else {
                 storeFile = file("${rootDir}/debug.keystore")
                 storePassword = "android"
                 keyAlias = "androiddebugkey"
@@ -43,15 +43,12 @@ android {
         }
 
         create("debugConfig") {
-            val debugKey = file("${rootDir}/debug.keystore")
-            if (debugKey.exists()) {
-                storeFile = debugKey
-                storePassword = "android"
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
-                enableV1Signing = true
-                enableV2Signing = true
-            }
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
@@ -60,14 +57,17 @@ android {
             isCrunchPngs = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            val debugKey = file("${rootDir}/debug.keystore")
+            val uploadKey = file(System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks")
+            if (uploadKey.exists() || debugKey.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             val debugKey = file("${rootDir}/debug.keystore")
             if (debugKey.exists()) {
                 signingConfig = signingConfigs.getByName("debugConfig")
             }
-            // Falls back automatically to Android's built-in debug keystore if no debug.keystore file exists
         }
     }
 
