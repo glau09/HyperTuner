@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build Signed APK
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +22,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
       - name: Set up Android SDK & NDK
         uses: android-actions/setup-android@v3
@@ -59,7 +58,7 @@ jobs:
       - name: Build Debug APK
         env:
           GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dorg.gradle.daemon=false"
-        run: ./gradlew assembleDebug --stacktrace --info
+        run: ./gradlew assembleDebug --stacktrace --full-stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
