@@ -1,0 +1,6 @@
+{
+  "name": "HyperTuner Pro",
+  "description": "HyperTuner Pro: Comprehensive non-root ADB optimization utility for Android, with dedicated tuning modules for Xiaomi and POCO devices running HyperOS and MIUI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
